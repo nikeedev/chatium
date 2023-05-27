@@ -1,9 +1,18 @@
 /** @type {HTMLInputElement} */
 const input = document.getElementById("input");
+
+/** @type {HTMLDivElement} */
 const output = document.getElementById("output");
-const button = document.getElementById("send");
 
+const update = async () => {
+    output.style.width = `${window.innerWidth - 40}px`;
+    output.style.height = `${window.innerHeight - 20}px`;
 
+    input.style.width = `${window.innerWidth - 40}px`;
+
+    window.requestAnimationFrame(update);
+};
+window.requestAnimationFrame(update);
 
 (async () => {
     
@@ -17,9 +26,11 @@ const button = document.getElementById("send");
     };
 
     wss.onopen = (ws) => {
-        button.addEventListener("click", function() {
-            wss.send(input.value);
-            input.value = "";
+        window.addEventListener("keydown", function(e) {
+            if(e.key == "Enter") {
+                wss.send(input.value);
+                input.value = "";
+            }
         });
 
     };
