@@ -7,7 +7,7 @@ const button = document.getElementById("send");
 
 (async () => {
     
-    const wss = new WebSocket("wss://websocket-chat.nikeedev.repl.co:8800");
+    const wss = new WebSocket("ws://165.232.90.211/");
     
     console.log(wss)
 
