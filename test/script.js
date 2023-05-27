@@ -7,7 +7,7 @@ const button = document.getElementById("send");
 
 (async () => {
     
-    const wss = new WebSocket("ws://165.232.90.211/");
+    const wss = new WebSocket("ws://165.232.90.211:8800");
     
     console.log(wss)
 
