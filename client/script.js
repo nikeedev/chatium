@@ -4,18 +4,45 @@ const input = document.getElementById("input");
 /** @type {HTMLDivElement} */
 const output = document.getElementById("output");
 
+/** @type {HTMLInputElement} */
+const username_input = document.getElementById("username");
+
+/** @type {HTMLButtonElement} */
+const join = document.getElementById("join");
+
+let username = "";
+
+input.style.display = "none";
+output.style.display = "none";
 
 output.style.width = `${window.innerWidth - 40}px`;
-output.style.height = `${window.innerHeight - 20}px`;
-
+output.style.height = `${window.innerHeight - 40}px`;
 input.style.width = `${window.innerWidth - 40}px`;
 
-(async () => {
+join.onclick = () => {
+    let username_check = username_input.value.trim();
+    if (!username_check.length >= 0) {
+        username = JSON.stringify({username:username_check});
+        document.getElementById("login").remove();
+
+        input.style.display = "block";
+        output.style.display = "flex";
+
+        run();
+    }
+}
+
+
+async function run() {
     
-    const wss = new WebSocket("ws://165.232.90.211/server");
+    // production
+    // const wss = new WebSocket("ws://165.232.90.211/server");
+    
+    // dev
+    const wss = new WebSocket("ws://localhost:8800");
     
     console.log(wss)
-
+    
     wss.onmessage = (ws) => {
         console.log(ws.data);
         output.innerText += `${ws.data}\n`
@@ -27,8 +54,18 @@ input.style.width = `${window.innerWidth - 40}px`;
                 wss.send(input.value);
                 input.value = "";
             }
-        });
+        }); 
 
+        let executed = false;
+        while (!executed) {
+            return function() {
+                if (!executed) {
+                    executed = true;
+                    wss.send(username);
+                    console.log(username);
+                }
+            }();
+        }
     };
 
     wss.onclose = () => {
@@ -38,4 +75,4 @@ input.style.width = `${window.innerWidth - 40}px`;
     wss.onerror = (e) => {
         console.log("Error");
     };
-})();
+};

@@ -12,17 +12,32 @@ wss.getUniqueID = function () {
 };
 
 wss.on('connection', (ws) => {
-    ws.id = wss.getUniqueID();
-
-    clients.push(ws);
-
-    ws.send(`Hello! Your, username is ${ws.id}`);
 
     ws.on('message', (msg) => {
-        console.log("received: ", `${ws.id}: ${msg.toString()}`);
+        if (typeof JSON.parse(msg.toString()) === "object")
+        {
+            console.log(msg.toString());
+
+            ws.id = JSON.parse(msg.toString()).username;
+            
+            console.log(`username ${ws.id} joined`);
+
+            ws.send(`Hello! Welcome ${ws.id} to the chat!`);
+
+            sendAll(`${ws.id} has joined the chat`);
+
+            clients.push(ws);
         
-        sendAll(`${ws.id}: ${msg.toString()}`);
+        }
+        else {
+            console.log("received: ", `${ws.id}: ${msg.toString()}`);
+        
+            sendAll(`${ws.id}: ${msg.toString()}`);
+        }
     });
+
+   
+    
 
 });
 
