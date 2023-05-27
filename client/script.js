@@ -4,15 +4,11 @@ const input = document.getElementById("input");
 /** @type {HTMLDivElement} */
 const output = document.getElementById("output");
 
-const update = async () => {
-    output.style.width = `${window.innerWidth - 40}px`;
-    output.style.height = `${window.innerHeight - 20}px`;
 
-    input.style.width = `${window.innerWidth - 40}px`;
+output.style.width = `${window.innerWidth - 40}px`;
+output.style.height = `${window.innerHeight - 20}px`;
 
-    window.requestAnimationFrame(update);
-};
-window.requestAnimationFrame(update);
+input.style.width = `${window.innerWidth - 40}px`;
 
 (async () => {
     
