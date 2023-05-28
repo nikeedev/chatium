@@ -26,8 +26,19 @@ const update = () => {
 requestAnimationFrame(update);
 
 const run = async () => {
+    output.message("Chatium by nikeedev @ 2023\n\n");
+   
+    //changelog
+    output.message("Changelog: \n")
+    await fetch('current_changelog.txt')
+    .then(response => response.text())
+    .then(text => output.message(text))
     
-    output.message(`Write "/join [your_username]", to begin talking!\n\rFor help use "/help" command`);
+    output.message(`\n
+    -------
+    Write "/join [your_username]", to begin talking!\n\rFor help use "/help" command
+    -------
+    `);
 
     // production
     // const wss = new WebSocket("ws://165.232.90.211/server");
