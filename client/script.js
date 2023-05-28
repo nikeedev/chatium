@@ -34,7 +34,7 @@ const run = async () => {
     .then(response => response.text())
     .then(text => output.message(text))
     
-    output.message(`\n
+    output.message(`
     -------
     Write "/join [your_username]", to begin talking!\n\rFor help use "/help" command
     -------
