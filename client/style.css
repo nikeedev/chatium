@@ -1,7 +1,13 @@
+* {
+    font-family: consolas;
+    
+    font-size: 14px;
+}
+
 #output {
     width: 240px;
     height: 500px;
-    background-color: lightgrey;
+    background-color: rgb(232, 232, 232);
     border: 1px solid black;
     
     overflow: auto;
