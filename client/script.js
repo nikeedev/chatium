@@ -41,10 +41,10 @@ const run = async () => {
     `);
 
     // production
-    // const wss = new WebSocket("ws://165.232.90.211/server");
+    const wss = new WebSocket("ws://165.232.90.211/server");
     
     // dev
-    const wss = new WebSocket("ws://localhost:8800");
+    // const wss = new WebSocket("ws://localhost:8800");
     
     console.log(wss)
     
