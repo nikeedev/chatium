@@ -13,6 +13,6 @@ Todo:
     - [ ] Add clear command so that we can clear the div from all those messages. 
           Again the parsing must therefore happen at client side.
 
-- [ ] Sens message to user who sends dm to the other user, about that the dm was sent, cause it doesnt show up 
+- [ ] Sends message to user who sends dm to the other user, about that the dm was sent, cause it doesnt show up 
 
 updated 29.05.2023

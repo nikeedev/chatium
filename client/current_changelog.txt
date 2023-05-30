@@ -1,4 +1,0 @@
-28.05.2023:
-- Added slash commands like `/msg`
-- Fixed so that you can't spam empty messages anymore, it must have a minimum of 1 character
-- Fixed on UI and added `autofocus` on input box so you can start writing immediately

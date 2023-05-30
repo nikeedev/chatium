@@ -25,7 +25,22 @@ String.prototype.legalName = function () {
     return !/\s/g.test(this.valueOf()) && !/\//g.test(this.valueOf());
 }
 
-const uptime = new Date();
+
+const adjs = ["Fruity", "Blue", "Red", "Green", "Yellow", "Big", "Small", "Ginourmous", "Hungry", "Mini", "Round", "Squared", "Squishy"];
+const nouns = ["Ball", "Car", "Phone", "Apple", "Phone", "Leaf", "Cat", "Frog", "Poet", "Actor", "Tea", "World", "Sauce", "House"];
+    
+function generateRandomWord() {    
+    let random = (adjs[Math.floor(Math.random() * adjs.length)] + nouns[Math.floor(Math.random() * nouns.length)]);
+
+    let same = false;
+    clients.forEach(client => {
+        if (client.username == random) {
+            same = true;
+        }
+    });
+
+    return same ? generateRandomWord() : random;
+}
 
 const { WebSocketServer } = require("ws");
 const wss = new WebSocketServer({port: 8800})
@@ -33,36 +48,33 @@ const wss = new WebSocketServer({port: 8800})
 let clients = [];
 
 wss.on('connection', (ws) => {
+    ws.username = generateRandomWord();
+
+    clients.push(ws);
+
+    console.log(`username ${ws.username} joined`);
+    
+    ws.send(`Hello, and welcome to the chat! Your username is for now ${ws.username}. Server version: v${version}`);
+    
+    sendAll(`${ws.username} has joined the chat. Welcome ${ws.username}!`);
+    
+    ws.on('close', () => {
+        sendAll(`${ws.username} left the chat`);
+        console.log(`${ws.username} left the chat`);
+        clients.splice(clients.indexOf(ws), 1);
+    });
 
     ws.on('message', (msg) => {
         let message = msg.toString();
-        if (slashCommand(message).command == "join" && ws.username === undefined)
-        {
-            let username = slashCommand(message).body.trim();
-            console.log(username);
-            if (!username.legalName()) {
-                ws.send(`Your username cannot include spaces or special characters like /`);
-            }
-            else {
-                ws.username = username;
-                
-                console.log(`username ${ws.username} joined`);
-
-                ws.send(`Hello ${ws.username}! Welcome to the chat! Server version: v${version}`);
-
-                sendAll(`${ws.username} has joined the chat`);
-
-                clients.push(ws);
-            }
-            
-        }
-        else if (message.trim().startsWith("/")) {
+        
+        if (message.trim().startsWith("/")) {
             let command = slashCommand(message.trim());
-            console.log(command);
+
             switch (command.command) {
+                
                 case "help":
                     ws.send(`
-                        <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                        <<<<<<<<<<<<<<<<<
                         Chatium by nikeedev - server version: v${version}.
 
                         Send a message by just writing it and pressing enter. 
@@ -70,58 +82,89 @@ wss.on('connection', (ws) => {
                         Commands: 
                         /help - shows this page again.
 
+                        /name - rename yourself.
+
                         /msg [username] [message] - sends a message to the specified username
 
-                        /uptime - shows the time since the server was started up.
-
+                        /list - show list of online users
                         --------------
 
                         More commands will be added later, you can watch the development on the GitHub repo of the chat:
                         https://github.com/nikeedev/chatium
-                        >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                        >>>>>>>>>>>>>>>>>
                     `);
                     break;
+
+                case "name":
+                    let username = command.body.trim();
+
+                    console.log(username);
                     
+                    if (!username.legalName()) {
+                        ws.send(`Username cannot include spaces or "/" slash symbol due to parsing reasons.`);
+                    }
+                    else if (sameUsername(username))
+                    {
+                        ws.send(`Username is already in use. Please use another.`);
+                    }
+                    else {
+                        let old = ws.username;
+                        ws.username = username;
+                        
+                        console.log(`reanmed username ${old} to ${ws.username}`);
+                        
+                        ws.send(`Renamed to ${ws.username}`);
+
+                        sendAll(`${old} renamed themselves to ${ws.username}`);
+        
+                    }
+                    break;
+
                 case "msg":
                     let reciever = command.body.split(" ")[0];
 
-                    let message = command.body.split(" ").filter((v, i) => i > 0).join(' ');
+                    let msg = command.body.split(" ").filter((v, i) => i > 0).join(' ');
 
                     clients.forEach(client => {
                         if (client.username == reciever)
                         {
-                            client.send(`From @${ws.username}: ${message}`);
+                            client.send(`From @${ws.username}: ${msg}`);
+                            ws.send(`Private message sent to @${client.username}`)
                         }
                     })
                     break;
 
-                case "uptime":
-                    var ms = Math.abs(new Date() - uptime);
-                    const secs = Math.floor(Math.abs(ms) / 1000);
-                    const mins = Math.floor(secs / 60);
-                    const hours = Math.floor(mins / 60);
-                    const days = Math.floor(hours / 24);
-                    ws.send(`
-                        \nOnline for: ${days} day(s), ${hours} hours, ${mins} mins, and ${secs} seconds.\n
-                    `);
+                case "list":
+                    ws.send(`\n`);
+                    ws.send(` First to join ↓`);
+                    clients.forEach((client, i) => ws.send(`${i+1}: ${client.username}`))
+                    ws.send(` Last to join ↑`)
+                    ws.send(`\n`);
                     break;
-
+                    
                 default:
                     ws.send(`${command.slashcommand} command doesn't exist. Use /help to see available commands.`)
                     break;
             }
         }
-        else if (ws.username != "") {
-            console.log("received: ", `${ws.username}: ${message}`);
+        else {
+            console.log(`received: ${ws.username}: ${message}`);
         
             sendAll(`${ws.username}: ${message}`);
         }
     });
-
-   
-    
-
 });
+
+
+const sameUsername = (username) => {
+    let same = false;
+    clients.forEach(client => {
+        if (client.username == username) {
+            same = true;
+        }
+    });
+    return same;
+}
 
 const sendAll = (message) => {
     clients.forEach(client => {

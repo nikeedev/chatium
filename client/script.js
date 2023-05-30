@@ -16,35 +16,68 @@ Element.prototype.error = function (message) {
     this.innerHTML += `<p style="color:red">${message}</p><br />`;
 }
 
-const update = () => {
-    output.style.width = `${window.innerWidth - 40}px`;
-    output.style.height = `${window.innerHeight - 40}px`;
-    input.style.width = `${window.innerWidth - 40}px`;
+// Modified version of krismuniz's slash-command repo - github - MIT License
 
-    requestAnimationFrame(update);
+const slashCommand = (s) => {
+    let cmds = s.split(' ')[0].match(/\/([\w-=:.@]+)/ig);
+    let slashcmds;
+    let body = s.trim();
+  
+    if (cmds) {
+      slashcmds = cmds.join('');
+      cmds = cmds.map(x => x.replace('/',''));
+      body = s.split(' ').filter((v, i) => i > 0).join(' ').trim() || null;
+    }
+  
+    return {
+      slashcommand: slashcmds,
+      command: cmds ? cmds[0] : null,
+      body: body,
+      original: s
+    };
+};
+
+String.prototype.legalName = function () {
+    return !/\s/g.test(this.valueOf()) && !/\//g.test(this.valueOf());
 }
-requestAnimationFrame(update);
+
+const adjs = ["Fruity", "Blue", "Red", "Green", "Yellow", "Big", "Small", "Ginourmous", "Hungry", "Mini", "Round", "Squared", "Squishy"];
+const nouns = ["Ball", "Car", "Phone", "Apple", "Phone", "Leaf", "Cat", "Frog", "Poet", "Actor", "Tea", "World", "Sauce", "House"];
+    
+function generateRandomWord() {    
+    let random = (adjs[Math.floor(Math.random() * adjs.length)] + nouns[Math.floor(Math.random() * nouns.length)]);
+
+    let same = false;
+    clients.forEach(client => {
+        if (client.username == random) {
+            same = true;
+        }
+    });
+
+    return same ? generateRandomWord() : random;
+}
+
 
 const run = async () => {
     output.message("Chatium by nikeedev @ 2023\n\n");
    
     //changelog
     output.message("Changelog: \n")
-    await fetch('current_changelog.txt')
+    await fetch('changelog.txt')
     .then(response => response.text())
     .then(text => output.message(text))
     
     output.message(`
     -------
-    Write "/join [your_username]", to begin talking!\n\rFor help use "/help" command
+    For help use "/help" command
     -------
     `);
 
     // production
-    const wss = new WebSocket("ws://165.232.90.211/server");
+    // const wss = new WebSocket("ws://165.232.90.211/server");
     
     // dev
-    // const wss = new WebSocket("ws://localhost:8800");
+    const wss = new WebSocket("ws://localhost:8800");
     
     console.log(wss)
     
