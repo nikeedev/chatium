@@ -16,26 +16,26 @@ Element.prototype.error = function (message) {
     this.innerHTML += `<p style="color:red">${message}</p><br />`;
 }
 
-// Modified version of krismuniz's slash-command repo - github - MIT License
-
+/// https://github.com/krismuniz/slash-command
 const slashCommand = (s) => {
     let cmds = s.split(' ')[0].match(/\/([\w-=:.@]+)/ig);
     let slashcmds;
     let body = s.trim();
-  
+
     if (cmds) {
-      slashcmds = cmds.join('');
-      cmds = cmds.map(x => x.replace('/',''));
-      body = s.split(' ').filter((v, i) => i > 0).join(' ').trim() || null;
+        slashcmds = cmds.join('');
+        cmds = cmds.map(x => x.replace('/', ''));
+        body = s.split(' ').filter((v, i) => i > 0).join(' ').trim() || null;
     }
-  
+
     return {
-      slashcommand: slashcmds,
-      command: cmds ? cmds[0] : null,
-      body: body,
-      original: s
+        slashcommand: slashcmds,
+        command: cmds ? cmds[0] : null,
+        body: body,
+        original: s
     };
 };
+///
 
 String.prototype.legalName = function () {
     return !/\s/g.test(this.valueOf()) && !/\//g.test(this.valueOf());
@@ -43,8 +43,8 @@ String.prototype.legalName = function () {
 
 const adjs = ["Fruity", "Blue", "Red", "Green", "Yellow", "Big", "Small", "Ginourmous", "Hungry", "Mini", "Round", "Squared", "Squishy"];
 const nouns = ["Ball", "Car", "Phone", "Apple", "Phone", "Leaf", "Cat", "Frog", "Poet", "Actor", "Tea", "World", "Sauce", "House"];
-    
-function generateRandomWord() {    
+
+function generateRandomWord() {
     let random = (adjs[Math.floor(Math.random() * adjs.length)] + nouns[Math.floor(Math.random() * nouns.length)]);
 
     let same = false;
@@ -59,14 +59,14 @@ function generateRandomWord() {
 
 
 const run = async () => {
-    output.message("Chatium by nikeedev @ 2023\n\n");
-   
+    output.message("Chatium by nikeedev@2023\n\n");
+
     //changelog
     output.message("Changelog: \n")
     await fetch('changelog.txt')
-    .then(response => response.text())
-    .then(text => output.message(text))
-    
+        .then(response => response.text())
+        .then(text => output.message(text))
+
     output.message(`
     -------
     For help use "/help" command
@@ -75,24 +75,24 @@ const run = async () => {
 
     // production
     // const wss = new WebSocket("ws://165.232.90.211/server");
-    
+
     // dev
     const wss = new WebSocket("ws://localhost:8800");
-    
+
     console.log(wss)
-    
+
     wss.onmessage = (ws) => {
         console.log(ws.data);
         output.message(ws.data);
     };
 
     wss.onopen = (ws) => {
-        window.addEventListener("keydown", function(e) {
-            if(e.key == "Enter" && input.value != "") {
+        window.addEventListener("keydown", function (e) {
+            if (e.key == "Enter" && input.value != "") {
                 wss.send(input.value);
                 input.value = "";
             }
-        }); 
+        });
     };
 
     wss.onclose = () => {
