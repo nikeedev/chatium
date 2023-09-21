@@ -129,6 +129,7 @@ wss.on('connection', (ws) => {
                             client.send(`From @${ws.username}: ${msg}`);
                             ws.send(`Direct message sent to @${client.username}`)
                         }
+                    })
                     break;
 
                 case "list":
