@@ -2,6 +2,25 @@ const { version } = require('./package.json');
 
 // Modified version of krismuniz's slash-command repo - github - MIT License
 
+const slashCommand = (s) => {
+    let cmds = s.split(' ')[0].match(/\/([\w-=:.@]+)/ig);
+    let slashcmds;
+    let body = s.trim();
+
+    if (cmds) {
+        slashcmds = cmds.join('');
+        cmds = cmds.map(x => x.replace('/', ''));
+        body = s.split(' ').filter((v, i) => i > 0).join(' ').trim() || null;
+    }
+
+    return {
+        slashcommand: slashcmds,
+        command: cmds ? cmds[0] : null,
+        body: body,
+        original: s
+    };
+};
+
 String.prototype.legalName = function () {
     return !/\s/g.test(this.valueOf()) && !/\//g.test(this.valueOf());
 }
@@ -110,7 +129,6 @@ wss.on('connection', (ws) => {
                             client.send(`From @${ws.username}: ${msg}`);
                             ws.send(`Direct message sent to @${client.username}`)
                         }
-                    })
                     break;
 
                 case "list":
