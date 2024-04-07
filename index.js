@@ -1,7 +1,3 @@
-const { version } = require('./package.json');
-
-// Modified version of krismuniz's slash-command repo - github - MIT License
-
 const slashCommand = (s) => {
     let cmds = s.split(' ')[0].match(/\/([\w-=:.@]+)/ig);
     let slashcmds;
@@ -21,12 +17,13 @@ const slashCommand = (s) => {
     };
 };
 
+const version = "0.2.1a";
+
 String.prototype.legalName = function () {
     return !/\s/g.test(this.valueOf()) && !/\//g.test(this.valueOf());
 }
 
-
-const adjs = ["Fruity", "Blue", "Red", "Green", "Yellow", "Big", "Small", "Ginourmous", "Hungry", "Mini", "Round", "Squared", "Squishy"];
+const adjs = ["Fruity", "Blue", "Red", "Green", "Yellow", "Big", "Small", "Enormous", "Hungry", "Mini", "Round", "Squared", "Squishy"];
 const nouns = ["Ball", "Car", "Phone", "Apple", "Phone", "Leaf", "Cat", "Frog", "Poet", "Actor", "Tea", "World", "Sauce", "House"];
 
 function generateRandomWord() {
@@ -42,8 +39,17 @@ function generateRandomWord() {
     return same ? generateRandomWord() : random;
 }
 
-const { WebSocketServer } = require("ws");
-const wss = new WebSocketServer({ port: 8800 })
+const { WebSocketServer } = require('ws');
+
+const express = require('express');
+const http = require('http')
+const app = express();
+const server = http.createServer(app);
+const port = 8000;
+
+app.use('/client', express.static('public'));
+
+const wss = new WebSocketServer({ server: server })
 
 let clients = [];
 
@@ -84,7 +90,7 @@ wss.on('connection', (ws) => {
 
                         /name - rename yourself.
 
-                        /dm [username] [message] - sends a direct message to the specified username
+                        /msg [username] [message] - sends a direct message to the specified username
 
                         /list - show list of online users
                         --------------
@@ -110,7 +116,7 @@ wss.on('connection', (ws) => {
                         let old = ws.username;
                         ws.username = username;
 
-                        console.log(`reanmed username ${old} to ${ws.username}`);
+                        console.log(`renamed username ${old} to ${ws.username}`);
 
                         ws.send(`Renamed to ${ws.username}`);
 
@@ -119,13 +125,13 @@ wss.on('connection', (ws) => {
                     }
                     break;
 
-                case "dm":
-                    let reciever = command.body.split(" ")[0];
+                case "msg":
+                    let receiver = command.body.split(" ")[0];
 
                     let msg = command.body.split(" ").filter((v, i) => i > 0).join(' ');
 
                     clients.forEach(client => {
-                        if (client.username == reciever) {
+                        if (client.username == receiver) {
                             client.send(`From @${ws.username}: ${msg}`);
                             ws.send(`Direct message sent to @${client.username}`)
                         }
@@ -153,6 +159,7 @@ wss.on('connection', (ws) => {
     });
 });
 
+server.listen(port)
 
 const sameUsername = (username) => {
     let same = false;

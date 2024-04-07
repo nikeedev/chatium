@@ -1,4 +1,0 @@
-1.2.1:
-- Removed `/uptime` command as it isn't useful
-- Added `/list` command, to watch which users online in chronological order.
-- Added `/name` command, highly requested by @stio_studio
