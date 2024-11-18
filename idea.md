@@ -1,8 +1,8 @@
-# The idea for the new "protocol"/system for managing client and server connections
+# The idea for the new protocol for managing client and server connections
 
-With this new system that I (nikeedev) created, sending messages using websockets will be a lot easier now that the messages will be just stringified JSON's.
+With this new system that I (nikeedev) created, sending messages using WebSocket will be a lot easier now that the messages will be just stringified JSON's.
 
-Each message will send a status value, username value, and data value depending on the status.
+Each message will send a type value, username value, and data value depending on the status.
 
 
 ## Here is how my chat will use my new protocol:
@@ -11,7 +11,7 @@ So when a user opens the client and writes a name, and joins, the user will be c
 
 ```jsonc
 {
-    "status": "join",
+    "type": "join",
     "username": "Foo",
 }
 ```
@@ -25,7 +25,7 @@ Next, if a user decides to send a message, this message will be sent to the serv
 
 ```jsonc
 {
-    "status": "message",
+    "type": "message",
     "username": "Foo",
     "data": "Hello, world!" 
 }
@@ -37,11 +37,17 @@ For DM's:
 
 ```jsonc
 {
-    "status": "dm",
+    "type": "message",
     "username": "Foo",
     "data": "Hello, world!",
     "to": "Bar"
 }
 ```
 
-The "to" parameter specifies what user(name) will get the message, so that not everybody gets to read it. 
+The "to" parameter specifies what user(name) will get the message, so that not everybody gets to read it.
+
+All server message types:
+- `join`: user joined 
+- `leave`: user left
+- `message` (if has `"to"` argument, send as DM)
+- `list`: send list of users, usually used only in the start to retrieve list of current users.
