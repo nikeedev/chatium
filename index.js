@@ -51,7 +51,7 @@ app.use('/client', express.static('public'));
 
 const wss = new WebSocketServer({ server: server })
 
-let clients = [];
+let clients =[];
 
 wss.on('connection', (ws) => {
     ws.username = generateRandomWord();

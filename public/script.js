@@ -61,12 +61,6 @@ function generateRandomWord() {
 const run = async () => {
     output.message("Chatium by nikeedev@2023\n\n");
 
-    //changelog
-    output.message("Changelog: \n")
-    await fetch('changelog.txt')
-        .then(response => response.text())
-        .then(text => output.message(text))
-
     output.message(`
     -------
     For help use "/help" command
@@ -74,10 +68,10 @@ const run = async () => {
     `);
 
     // production
-    // const wss = new WebSocket("ws://165.232.90.211/server");
+    const wss = new WebSocket("wss://chat.nikee.dev");
 
     // dev
-    const wss = new WebSocket("ws://localhost:8800");
+    // const wss = new WebSocket("ws://localhost:8000");
 
     console.log(wss)
 
@@ -89,6 +83,14 @@ const run = async () => {
     wss.onopen = (ws) => {
         window.addEventListener("keydown", function (e) {
             if (e.key == "Enter" && input.value != "") {
+                wss.send(input.value);
+                input.value = "";
+            }
+        });
+
+        document.getElementById("send").addEventListener("click", function (e) {
+            if (input.value != "") {
+                console.log("Sending message");
                 wss.send(input.value);
                 input.value = "";
             }

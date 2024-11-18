@@ -8,8 +8,8 @@
     margin-left: 5px;
     margin-top: 2px;
     line-height: 1.65;
-    width: 240px;
-    height: 500px;
+    width: 90vw;
+    height: 90vh;
     background-color: rgb(232, 232, 232);
     border: 1px solid black;
     
@@ -20,8 +20,6 @@
 }
 
 #main {
-    box-shadow: 0px 0px 10px 5px #4a2aff;
     margin-left: 5px;
     margin-top: 2px;
-
 }
