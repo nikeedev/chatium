@@ -49,4 +49,5 @@ The "to" parameter specifies what user(name) will get the message, so that not e
 All server message types:
 - `join`: user joined 
 - `leave`: user left
-- `message` (if has `"to"` argument, send as DM)
+- `message` (if has `"to"` argument, sends message as DM)
+- `rename`: username renamed
