@@ -18,7 +18,7 @@ So when a user opens the client and writes a name, and joins, the user will be c
 
 This message is going to be parsed at the server side and after understanding the message the server will send same message to the all connected clients but not the user who joined that time. An array of users will be saved on the server side and client side so that both know which users are online.
 
-The server also gives back to the joined user an array of existing/online users, that way 
+The server also gives back an array of already existing/online users, that way it knows whether the random username it create will work or that it generates a new one.
 
 
 Next, if a user decides to send a message, this message will be sent to the server: 
@@ -50,4 +50,3 @@ All server message types:
 - `join`: user joined 
 - `leave`: user left
 - `message` (if has `"to"` argument, send as DM)
-- `list`: send list of users, usually used only in the start to retrieve list of current users.
