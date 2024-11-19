@@ -8,8 +8,8 @@
     margin-left: 5px;
     margin-top: 2px;
     line-height: 1.65;
-    width: 90vw;
-    height: 90vh;
+    /* width: 90vw;
+    height: 90vh; */
     background-color: rgb(232, 232, 232);
     border: 1px solid black;
     
@@ -22,4 +22,8 @@
 #main {
     margin-left: 5px;
     margin-top: 2px;
+}
+
+#send {
+    margin-left: -5px;
 }

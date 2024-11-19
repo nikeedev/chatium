@@ -10,9 +10,9 @@ const port = 8000;
 
 app.use('/client', express.static('public'));
 
-const wss = new WebSocketServer({ server: server })
+const wss = new WebSocketServer({ server: server });
 
-/** @type {Array<WebSocket>} */
+/** @type {Array<String>} */
 let clients = [];
 
 wss.on('connection', (ws) => {
@@ -27,15 +27,22 @@ wss.on('connection', (ws) => {
         let message = JSON.parse(msg.toString());
         
         switch (message.type) {
-
             case "join":
                 ws.username = message.data;
                 console.log(`username ${ws.username} joined`);
                 
-                ws.send(`Hello, and welcome to the chat! Your username is for now ${ws.username}. Server version: v${version}`);
-                sendAll(`${ws.username} has joined the chat. Welcome ${ws.username}!`);
+                ws.send(JSON.stringify({
+                    type: "info",
+                    data: `Hello, and welcome to the chat! Your username is ${ws.username}. Server version: v${version}`,
+                    date: new Date().toLocaleTimeString()
+                }));
+                sendAll(JSON.stringify({
+                    type: "info",
+                    data: `${ws.username} has joined the chat. Welcome ${ws.username}!`,
+                    date: new Date().toLocaleTimeString()
+                }));
                 
-                clients.push(ws);
+                clients.push(ws.username);
 
                 break;
 
@@ -48,14 +55,18 @@ wss.on('connection', (ws) => {
                 ws.username = username;
 
                 console.log(`renamed username ${old} to ${ws.username}`);
-                ws.send(`Renamed to ${ws.username}`);
+                ws.send(JSON.stringify({
+                    type: "rename",
+                    data: `${ws.username}`,
+                    user: `${old}`
+                }));
                 sendAll(`${old} renamed themselves to ${ws.username}`);
 
                 break;
 
             case "message":
                 if (message.to === undefined) {
-                    sendAll(`@${ws.username}: ${message.data}`);
+                    sendAll(message.data);
                 } else {
                     clients.forEach(client => {
                         if (client.username == message.to) {
@@ -71,6 +82,13 @@ wss.on('connection', (ws) => {
                 console.log(`${ws.username} left the chat`);
                 clients.splice(clients.indexOf(ws), 1);
                 ws.close();
+                break;
+
+            case "list":
+                ws.send(JSON.stringify({
+                    type: "list",
+                    data: clients.toString()
+                }));
                 break;
 
             default:
