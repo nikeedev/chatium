@@ -1,13 +1,12 @@
 * {
-    font-family: monospace;
-    
+    font-family: Arial;
+    letter-spacing:0.5px;
     font-size: 14px;
 }
 
 #output {
     margin-left: 5px;
     margin-top: 2px;
-    line-height: 1.65;
     /* width: 90vw;
     height: 90vh; */
     background-color: rgb(232, 232, 232);

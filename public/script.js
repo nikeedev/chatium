@@ -8,24 +8,27 @@ output.style.width = `${window.innerWidth - 40}px`;
 output.style.height = `${window.innerHeight - 60}px`;
 input.style.width = `${window.innerWidth - 60}px`;
 
-Element.prototype.message = function (message) {
-    this.innerText += `${message}\n`;
+Element.prototype.message = function (message, nl = true) {
+    let p = document.createElement("p");
+    p.innerText = message;
+    this.insertBefore(p, this.firstChild);
+    if (nl) this.insertBefore(document.createElement("br"), this.firstChild);
 }
 
-Element.prototype.info = function (message) {
+Element.prototype.info = function (message, nl = true) {
     let p = document.createElement("p");
     p.style.color = "blue";
     p.innerText = message;
     this.insertBefore(p, this.firstChild);
-    this.insertBefore(document.createElement("br"), this.firstChild);
+    if (nl) this.insertBefore(document.createElement("br"), this.firstChild);
 }
 
-Element.prototype.error = function (message) {
+Element.prototype.error = function (message, nl = true) {
     let p = document.createElement("p");
     p.style.color = "red";
     p.innerText = message;
     this.insertBefore(p, this.firstChild);
-    this.insertBefore(document.createElement("br"), this.firstChild);
+    if (nl) this.insertBefore(document.createElement("br"), this.firstChild);
 }
 
 /// https://github.com/krismuniz/slash-command
@@ -49,6 +52,13 @@ const slashCommand = (s) => {
 };
 ///
 
+/**
+ * @typedef {Object} Message
+ * @property {string} [username]
+ * @property {string} data
+ * @property {string} time
+ * @property {string} [to]
+*/
 
 String.prototype.legalName = function () {
     return !/\s/g.test(this.valueOf()) && !/\//g.test(this.valueOf());
@@ -78,7 +88,11 @@ function generateRandomWord() {
 const version = "0.3.0a";
 let username = generateRandomWord();
 
-
+/**
+ * 
+ * @param {Message} message 
+ * @param {WebSocket} wss 
+ */
 function manageMessage(message, wss) {
     if (message.trim().startsWith("/")) {
         let command = slashCommand(message.trim());
@@ -120,12 +134,14 @@ function manageMessage(message, wss) {
                     output.error(`Username is already in use. Please write another.`);
                 }
                 else {
-                    ws.send(JSON.stringify({
+                    wss.send(JSON.stringify({
                         type: "rename",
                         data: `${new_username}`,
                         user: `${username}`,
                         time: new Date().toLocaleTimeString()
                     }));
+                    username = new_username;
+                    output.info(`Username changed to ${new_username}!`);
                 }
                 break;
 
@@ -134,32 +150,30 @@ function manageMessage(message, wss) {
 
                 let msg = command.body.split(" ").filter((v, i) => i > 0).join(' ');
 
+                let found = false;
                 clients.forEach(client => {
                     if (client == receiver) {
-                        ws.send(JSON.stringify({
+                        found = true;
+                        wss.send(JSON.stringify({
                             data: `${msg}`,
-                            username: ws.username,
+                            username: username,
                             type: "message",
                             to: client,
                             time: new Date().toLocaleTimeString()
                         }));
-                        output.info(`Direct message sent to @${client}`);
-                    } else {
-                        output.error(`User @${receiver} doesn't exist or is offline.`);
                     }
-                })
+                });
+                if (!found)
+                    output.error(`User @${receiver} doesn't exist or is offline.`);
                 break;
 
             case "list":
+                output.info("Online users:");
                 if (clients.length != 0) {
-                    output.info("\n");
-                    clients.forEach((client, i) => output.info(`${i + 1}. ${client.username}`))
-                    output.info("\n");
+                    clients.forEach((client, i) => output.info(`${i + 1}. ${client}`, false));
                 } else if (clients.length == 0) {
                     output.error("No users online...");
-                } else if (ws == undefined) {
-                    output.error("No users online. Chat server is down or your network connection is unstable.");
-                } 
+                }
                 break;
 
             default:
@@ -177,6 +191,8 @@ function manageMessage(message, wss) {
     }
 }
 
+let once = false;
+
 const run = async () => {
     output.message("Chatium by nikeedev @ 2024\n\n");
 
@@ -191,45 +207,35 @@ const run = async () => {
 
     // dev
     const wss = new WebSocket("ws://127.0.0.1:8080");
-    
-    wss.send(JSON.stringify({
-        type: "list",
-        time: new Date().toLocaleTimeString()
-    }));
 
     wss.onmessage = (ws) => {
-        console.log(ws.data);
-
-        /**
-         * @typedef {Object} Message
-         * @property {string} [username]
-         * @property {string} data
-         * @property {string} time
-         * @property {string} [to]
-         */
+        // console.log(ws.data);
 
         /** @type {Message} */
         let message = JSON.parse(ws.data.toString());
 
         switch (message.type) {
             case "join":
-                clients.push(message.data); 
-                output.message(`${message.time}\t@${message.data} joined the server! Welcome @${message.da}!`);
+                clients.push(message.data);
+                output.message(`${message.time}\t@${message.data} joined the server! Welcome @${message.data}!`, false);
 
                 break;
 
             case "rename":
-                clients[clients.indexOf(message.username)] = message.data; 
-                output.info(`${message.time}\t@${message.username} changed their username to ${message.data}.`);
+                clients[clients.indexOf(message.username)] = message.data;
+                console.log(clients.indexOf(message.username));
+                output.info(`${message.time}\t@${message.username} changed their username to ${message.data}.`, false);
 
                 break;
 
             case "message":
-                if (message.to === undefined) {
-                    output.message(`${message.time}\t@${message.user}: ${message.data}`);
+                console.log(message);
+                console.log(!message.hasOwnProperty('to'));
+                if (!message.hasOwnProperty('to')) {
+                    output.message(`${message.time}\t@${message.username}: ${message.data}`);
                 } else {
-                    output.info(`Message sent from @${message.to}:`);
-                    output.message(`${message.time}\t${message.data}`);
+                    output.info(`DM from @${message.username}:`);
+                    output.message(`${message.time}\t @${message.username}: ${message.data}`);
                 }
                 break;
 
@@ -237,11 +243,16 @@ const run = async () => {
                 output.info(`${message.time}\t${message.username} left the chat`);
                 // console.log(`${ws.username} left the chat`);
                 clients.splice(clients.indexOf(message.username), 1);
-                ws.close();
                 break;
 
             case "list":
-                clients = JSON.parse(message.data);
+                // console.log(message.data);
+                message.data.forEach(client => {
+                    if (!clients.includes(client)) {
+                        clients.push(client);
+                    }
+                });
+                // console.log(clients);
                 break;
 
             case "info":
@@ -255,6 +266,16 @@ const run = async () => {
     };
 
     wss.onopen = (ws) => {
+        if (!once) {
+            once = true;
+            wss.send(JSON.stringify({
+                type: "join",
+                data: username,
+                time: new Date().toLocaleTimeString()
+            }));
+            clients.push(username);
+        }
+
         window.addEventListener("keydown", function (e) {
             if (e.key == "Enter" && input.value != "") {
                 manageMessage(input.value, wss);
@@ -273,8 +294,8 @@ const run = async () => {
     wss.onclose = (ws) => {
         if (wss.readyState != 1 || wss.readyState != 0) {
             let closing_message = "Chat's server is either down or something is wrong with your network connection. Reload the page, or try again later.";
-            console.log(closing_message);
-            console.log(ws);
+            // console.log(closing_message);
+            // console.log(ws);
             output.error(closing_message);
         }
     };
