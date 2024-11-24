@@ -103,12 +103,12 @@ function manageMessage(message, wss) {
                     <<<<<<<<<<<<<<<<<
                     Chatium by nikeedev - client version: v${version}.
 
-                    Send a message by just writing it and pressing enter. 
+                    Send a message by just typing it in and pressing Enter. 
                     
                     Commands: 
                     /help - shows this page again.
 
-                    /name - rename yourself.
+                    /rename - rename yourself.
 
                     /dm [username] [message] - sends a direct message to the specified username
 
@@ -194,7 +194,7 @@ function manageMessage(message, wss) {
 let once = false;
 
 const run = async () => {
-    output.message("Chatium by nikeedev @ 2024\n\n");
+    output.message(`Chatium by nikeedev @ 2024 - client version: v${version}\n\n`);
 
     output.message(`
     -------
@@ -206,7 +206,7 @@ const run = async () => {
     // const wss = new WebSocket("wss://chat.nikee.dev");
 
     // dev
-    const wss = new WebSocket("ws://127.0.0.1:8080");
+    const wss = new WebSocket(location.hostname == "localhost" || location.hostname == "127.0.0.1" ? "ws://localhost:8080" : "wss://chatium.nikee.dev");
 
     wss.onmessage = (ws) => {
         // console.log(ws.data);
