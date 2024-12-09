@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const port = 8080;
 
-app.use('/client', express.static('public'));
+app.use('/client', express.static('client'));
 
 const wss = new WebSocketServer({ server: server });
 
