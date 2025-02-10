@@ -1,8 +1,10 @@
- # Chatium ![](public/assets/icon.png)
+ # Chatium 
+![](client/assets/icon.png)
 
-The protocol idea: [idea.md](idea.md) (to be used for client creation).
+The protocol: [Chatium protocol](protocol.md)
 
 ## Server
-Current server: (server.md)[server/server.md]
-(Possibly) next server: (server.md)[rust_server/server.md]
+* Official client: [client.md](client/client.md)
+* Current server: [server.md](server/server.md)
+* (Possibly) next server: [server.md for new server](rust_server/server.md)
 

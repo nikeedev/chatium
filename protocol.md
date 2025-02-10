@@ -1,4 +1,4 @@
-# The idea for the new protocol for managing client and server connections
+# The protocol for managing client and server connections for Chatium 
 
 With this new system that I (nikeedev) created, sending messages using WebSocket will be a lot easier now that the messages will be just stringified JSON's.
 
@@ -49,5 +49,5 @@ The "to" parameter specifies what user(name) will get the message, so that not e
 All server message types:
 - `join`: user joined 
 - `leave`: user left
-- `message` (if has `"to"` argument, sends message as DM)
+- `message` (if has `"to"` argument, sends message as a direct message ("DM"))
 - `rename`: username renamed
