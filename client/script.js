@@ -101,7 +101,7 @@ function manageMessage(message, wss) {
             case "help":
                 output.info(`
                     <<<<<<<<<<<<<<<<<
-                    Chatium by nikeedev - client version: v${version}.
+                    Chatium by nikeedev - client version: v${version} - server version: v0.3.0a
 
                     Send a message by just typing it in and pressing Enter. 
                     
@@ -194,7 +194,7 @@ function manageMessage(message, wss) {
 let once = false;
 
 const run = async () => {
-    output.message(`Chatium by nikeedev @ 2024 - client version: v${version}\n\n`);
+    output.message(`Chatium by nikeedev @ 2025 - client version: v${version}\n\n`);
 
     output.message(`
     -------
@@ -206,7 +206,7 @@ const run = async () => {
     // const wss = new WebSocket("wss://chat.nikee.dev");
 
     // dev
-    const wss = new WebSocket(location.hostname == "localhost" || location.hostname == "127.0.0.1" ? "ws://localhost:8080" : "wss://chatium.nikee.dev");
+    const wss = new WebSocket(location.hostname == "127.0.0.1" ? "ws://127.0.0.1:8080" : "wss://chatium.nikee.dev");
 
     wss.onmessage = (ws) => {
         // console.log(ws.data);

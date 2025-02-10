@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const port = 8080;
 
-app.use('/client', express.static('client'));
+app.use('/', express.static('../client'));
 
 const wss = new WebSocketServer({ server: server });
 
@@ -152,12 +152,12 @@ wss.on('connection', (ws) => {
 });
 
 
-server.listen(port);
-console.log(`Server started on port ws://127.0.0.1:${port}`);
-console.log(`Client started on port http://127.0.0.1:${port}/client`);
-
 const sendAll = (message) => {
     clients.forEach(client => {
         client.send(message);
     });
 }
+
+server.listen(port);
+console.log(`Server started on port ws://127.0.0.1:${port}`);
+console.log(`Client started on port http://127.0.0.1:${port}/client`);
