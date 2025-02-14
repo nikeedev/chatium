@@ -1,5 +1,5 @@
 {
-  "name": "Extermin",
+  "name": "extermin-bot",
   "version": "1.0.0",
   "description": "",
   "license": "GPL-3.0",
@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon "
+    "start": "node index.js"
   },
   "dependencies": {
     "ws": "^8.18.0"
