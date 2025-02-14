@@ -76,14 +76,16 @@ const extermin = {
 };
 
 let once = false;
-let clients = [];
+var clients = [];
 
 const run = async () => {
     wss.onmessage = (ws) => {
-        console.log(ws.data);
+        console.log("ws data: "+ws.data);
+        // console.log(clients);
 
         /** @type {Message} */
         let message = JSON.parse(ws.data.toString());
+        // console.log(message);
 
         switch (message.type) {
             case "join":
@@ -93,34 +95,38 @@ const run = async () => {
                 break;
 
             case "rename":
-                clients[clients.indexOf(message.username)].name = message.data;
+                clients[clients.map(client => client.name).indexOf(message.username)].name = message.data;
                 console.log(clients.indexOf(message.username));
                 console.info(`${message.time}\t@${message.username} changed their username to ${message.data}.`, false);
 
                 break;
 
             case "message":
-                let messageText = message.data;
+                // console.log(clients.map(client => client.name))
+                // console.log(clients[clients.map(client => client.name).indexOf(message.username)]);
+                /** @type {String} */
                 badWords.forEach(word => {
-                    if (messageText.includes(word)) {
-                        if (clients[clients.indexOf(message.username)].warnings <= 3) { 
-                            clients[clients.indexOf(message.username)].warnings++;
-                            ws.send(JSON.stringify({
-                                type: "action",
+                    if (message.data.includes(word)) {
+                        if (clients[clients.map(client => client.name).indexOf(message.username)].warnings <= 2) { 
+                            wss.send(JSON.stringify({
+                                username: extermin.name,
+                                type: "bot.action",
                                 data: {
-                                    action: "warning",
+                                    type: "warning",
                                     username: message.username,
-                                    reason: "Excessive use of bad language in chat, you have" + (3 - clients[clients.indexOf(message.username)].warnings) + " warnings left before you get banned!"
+                                    reason: "Excessive use of bad language in chat, you have " + (3 - clients[clients.map(client => client.name).indexOf(message.username)].warnings) + " warnings left before you get kicked"
                                 },
                                 time: new Date().toLocaleTimeString()
                             }));
+                            clients[clients.map(client => client.name).indexOf(message.username)].warnings++;
                         } else {
-                            ws.send(JSON.stringify({
-                                type: "action",
+                            wss.send(JSON.stringify({
+                                username: extermin.name,
+                                type: "bot.action",
                                 data: {
-                                    action: "kick",
+                                    type: "kick",
                                     username: message.username,
-                                    reason: "Excessive use of bad language in chat, you have been kicked!"
+                                    reason: "Excessive use of bad language in chat"
                                 },
                                 time: new Date().toLocaleTimeString()
                             }));
@@ -138,13 +144,13 @@ const run = async () => {
                 break;
 
             case "list":
-                console.log(message.data);
+                // console.log(message.data);
                 message.data.forEach(client => {
                     if (!clients.includes(client)) {
-                        clients.push(client);
+                        clients.push({name:client, warnings: 0});
                     }
                 });
-                // console.log(clients);
+                console.log(clients);
                 break;
 
             case "info":

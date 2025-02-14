@@ -31,6 +31,15 @@ Element.prototype.error = function (message, nl = true) {
     if (nl) this.insertBefore(document.createElement("br"), this.firstChild);
 }
 
+Element.prototype.warning = function (message, nl = true) {
+    let p = document.createElement("p");
+    p.style.color = "red";
+    p.style.fontWeight = "bold";
+    p.innerText = "" + message;
+    this.insertBefore(p, this.firstChild);
+    if (nl) this.insertBefore(document.createElement("br"), this.firstChild);
+}
+
 /// https://github.com/krismuniz/slash-command
 const slashCommand = (s) => {
     let cmds = s.split(' ')[0].match(/\/([\w-=:.@]+)/ig);
@@ -86,7 +95,18 @@ function generateRandomWord() {
 }
 
 const version = "0.3.0a";
-let username = generateRandomWord();
+
+let username
+if (localStorage.getItem("username") != null) {
+    let saved_username = localStorage.getItem("username");
+    if (saved_username.legalName()) {
+        username = saved_username;
+    } else {
+        username = generateRandomWord();
+    }
+} else {
+    username = generateRandomWord();
+}
 
 /**
  * 
@@ -141,6 +161,7 @@ function manageMessage(message, wss) {
                         time: new Date().toLocaleTimeString()
                     }));
                     username = new_username;
+                    localStorage.setItem("username", new_username);
                     output.info(`Username changed to ${new_username}!`);
                 }
                 break;
@@ -214,53 +235,145 @@ const run = async () => {
         /** @type {Message} */
         let message = JSON.parse(ws.data.toString());
 
-        switch (message.type) {
-            case "join":
-                clients.push(message.data);
-                output.message(`${message.time}\t@${message.data} joined the server! Welcome @${message.data}!`, false);
+        if (message.type.startsWith("bot.")) {
+            message.type = message.type.replace("bot.", "");
 
-                break;
+            switch (message.type) {
+                case "join":
+                    if (message.data.token == extermin_token) {
+                        ws.username = message.data.name;
+                        ws.access = message.data.access;
+                        console.log(`bot ${ws.username} joined`);
 
-            case "rename":
-                clients[clients.indexOf(message.username)] = message.data;
-                console.log(clients.indexOf(message.username));
-                output.info(`${message.time}\t@${message.username} changed their username to ${message.data}.`, false);
+                        ws.send(JSON.stringify({
+                            type: "info",
+                            data: `bot successfully connected to server. Server version: v${version}`,
+                            time: new Date().toLocaleTimeString()
+                        }));
 
-                break;
+                        ws.send(JSON.stringify({
+                            type: "list",
+                            data: clients.map(client => client.username),
+                            time: new Date().toLocaleTimeString()
+                        }));
 
-            case "message":
-                console.log(message);
-                console.log(!message.hasOwnProperty('to'));
-                if (!message.hasOwnProperty('to')) {
-                    output.message(`${message.time}\t@${message.username}: ${message.data}`);
-                } else {
-                    output.info(`DM from @${message.username}:`);
-                    output.message(`${message.time}\t @${message.username}: ${message.data}`);
-                }
-                break;
+                        sendAll(JSON.stringify({
+                            type: "bot.join",
+                            data: `${ws.username}`,
+                            time: new Date().toLocaleTimeString()
+                        }));
 
-            case "leave":
-                output.info(`${message.time}\t${message.username} left the chat`);
-                // console.log(`${ws.username} left the chat`);
-                clients.splice(clients.indexOf(message.username), 1);
-                break;
-
-            case "list":
-                // console.log(message.data);
-                message.data.forEach(client => {
-                    if (!clients.includes(client)) {
-                        clients.push(client);
+                        clients.push(ws);
                     }
-                });
-                // console.log(clients);
-                break;
+                    break;
 
-            case "info":
-                output.info(`${message.time}\tFrom server: ${message.data}`);
-                break;
+                case "action":
+                    if (ws.access == "mod") {
+                        let action = message.data;
+                        switch (action.type) {
+                            case "warning":
+                                clients.forEach(client => {
+                                    if (client.username == action.username) {
+                                        client.send(JSON.stringify({
+                                            type: "action",
+                                            data: {
+                                                type: "warning",
+                                                reason: action.reason,
+                                                by: ws.username
+                                            },
+                                            time: new Date().toLocaleTimeString()
+                                        }));
+                                    }
+                                });
+                                break;
+                        
+                            
+                            case "kick":
+                                clients.forEach(client => {
+                                    if (client.username == action.username) {
+                                        client.send(JSON.stringify({
+                                            type: "action",
+                                            data: {
+                                                type: "kick",
+                                                reason: action.reason,
+                                                by: ws.username
+                                            },
+                                            time: new Date().toLocaleTimeString()
+                                        }));
+                                    }
+                                });
+                                break;
+                        }
+                    }
+                    break;
 
-            default:
-                break;
+                default:
+                    ws.send(`${command.slashcommand} command doesn't exist. Use /help to see available commands.`)
+                    break;
+            }
+
+        } else {
+            switch (message.type) {
+                case "join":
+                    clients.push(message.data);
+                    output.message(`${message.time}\t@${message.data} joined the server! Welcome @${message.data}!`, false);
+
+                    break;
+
+                case "rename":
+                    clients[clients.indexOf(message.username)] = message.data;
+                    console.log(clients.indexOf(message.username));
+                    output.info(`${message.time}\t@${message.username} changed their username to ${message.data}.`, false);
+
+                    break;
+
+                case "message":
+                    console.log(message);
+                    console.log(!message.hasOwnProperty('to'));
+                    if (!message.hasOwnProperty('to')) {
+                        output.message(`${message.time}\t@${message.username}: ${message.data}`);
+                    } else {
+                        output.info(`DM from @${message.username}:`);
+                        output.message(`${message.time}\t @${message.username}: ${message.data}`);
+                    }
+                    break;
+
+                case "leave":
+                    output.info(`${message.time}\t${message.username} left the chat`);
+                    // console.log(`${ws.username} left the chat`);
+                    clients.splice(clients.indexOf(message.username), 1);
+                    break;
+
+                case "list":
+                    // console.log(message.data);
+                    message.data.forEach(client => {
+                        if (!clients.includes(client)) {
+                            clients.push(client);
+                        }
+                    });
+                    // console.log(clients);
+                    break;
+
+                case "info":
+                    output.info(`${message.time}\tFrom server: ${message.data}`);
+                    break;
+
+                case "action":
+                    switch (message.data.type) {
+                        case "warning":
+                            output.warning(`${message.time}\tYou have been warned due to: ${message.data.reason}; by: @${message.username}`);
+                            break;
+
+                        case "kick":
+                            output.warning(`${message.time}\tYou have been kicked from the server due to: ${message.data.reason}; by @${message.username}`);
+                            wss.close();
+                            break;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
         }
     };
 

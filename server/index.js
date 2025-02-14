@@ -21,7 +21,6 @@ let clients = [];
 wss.on('connection', (ws) => {
 
     ws.on('close', () => {
-        sendAll(`${ws.username} left the chat`);
         console.log(`${ws.username} left the chat`);
         clients.splice(clients.indexOf(ws), 1);
         sendAll(JSON.stringify({
@@ -42,6 +41,7 @@ wss.on('connection', (ws) => {
 
         /** @type {Message} */
         let message = JSON.parse(msg.toString());
+        console.log(message);
 
         if (message.type.startsWith("bot.")) {
             message.type = message.type.replace("bot.", "");
@@ -49,7 +49,8 @@ wss.on('connection', (ws) => {
             switch (message.type) {
                 case "join":
                     if (message.data.token == extermin_token) {
-                        ws.username = "[BOT] "+ message.data.name;
+                        ws.username = message.data.name;
+                        ws.access = message.data.access;
                         console.log(`bot ${ws.username} joined`);
 
                         ws.send(JSON.stringify({
@@ -75,13 +76,46 @@ wss.on('connection', (ws) => {
                     break;
 
                 case "action":
-                    if (message.data.access.includes("mod")) {
+                    if (ws.access == "mod") {
+                        let action = message.data;
+                        switch (action.type) {
+                            case "warning":
+                                clients.forEach(client => {
+                                    if (client.username == action.username) {
+                                        client.send(JSON.stringify({
+                                            username: message.username,
+                                            type: "action",
+                                            data: {
+                                                type: "warning",
+                                                reason: action.reason,
+                                            },
+                                            time: new Date().toLocaleTimeString()
+                                        }));
+                                    }
+                                });
+                                break;
                         
+                            
+                            case "kick":
+                                clients.forEach(client => {
+                                    if (client.username == action.username) {
+                                        client.send(JSON.stringify({
+                                            username: message.username,
+                                            type: "action",
+                                            data: {
+                                                type: "kick",
+                                                reason: action.reason,
+                                            },
+                                            time: new Date().toLocaleTimeString()
+                                        }));
+                                    }
+                                });
+                                break;
+                        }
                     }
                     break;
 
                 default:
-                    ws.send(`${command.slashcommand} command doesn't exist. Use /help to see available commands.`)
                     break;
             }
 
@@ -169,6 +203,11 @@ wss.on('connection', (ws) => {
                             username: client.username,
                             time: new Date().toLocaleTimeString()
                         }));
+                        console.log(JSON.stringify({
+                            type: "leave",
+                            username: client.username,
+                            time: new Date().toLocaleTimeString()
+                        }))
 
                         console.log(`${client.username} left the chat`);
                         clients.splice(clients.indexOf(client), 1);
@@ -190,7 +229,6 @@ wss.on('connection', (ws) => {
                     break;
 
                 default:
-                    ws.send(`${command.slashcommand} command doesn't exist. Use /help to see available commands.`)
                     break;
             }
         }
