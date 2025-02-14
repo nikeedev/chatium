@@ -2,69 +2,8 @@ const { WebSocket } = require('ws');
 
 const fs = require("fs");
 
-let badWords = [
-    "anal",
-    "anus",
-    "arse",
-    "ass",
-    "ballsack",
-    "bastard",
-    "bitch",
-    "biatch",
-    "blowjob",
-    "blow job",
-    "bollock",
-    "bollok",
-    "boner",
-    "boob",
-    "bugger",
-    "bum",
-    "buttplug",
-    "clitoris",
-    "cock",
-    "coon",
-    "cunt",
-    "dick",
-    "dildo",
-    "dyke",
-    "fag",
-    "feck",
-    "fellate",
-    "fellatio",
-    "felching",
-    "fuck",
-    "f u c k",
-    "fudgepacker",
-    "fudge packer",
-    "flange",
-    "homo",
-    "jerk",
-    "jizz",
-    "knobend",
-    "knob end",
-    "labia",
-    "muff",
-    "nigger",
-    "nigga",
-    "penis",
-    "piss",
-    "poop",
-    "prick",
-    "pube",
-    "pussy",
-    "queer",
-    "scrotum",
-    "sex",
-    "slut",
-    "smegma",
-    "spunk",
-    "tit",
-    "tosser",
-    "turd",
-    "twat",
-    "wank",
-    "whore",
-];
+const badWords = fs.readFileSync("badWords.txt").toString('UTF8').split('\n');
+
 // Enter chatium server address here (e.g. 'ws://localhost:8080' , port 8080 is default server port for a chatium server) 
 const wss = new WebSocket('ws://localhost:8080');
 
@@ -185,7 +124,9 @@ const run = async () => {
     };
 
     wss.onerror = (e) => {
-        console.error("Error: ", e);
+        if (!(wss.readyState != 1 || wss.readyState != 0)) {
+            console.error("Error: ", e);
+        }
     };
 }
 
