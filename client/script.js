@@ -67,7 +67,7 @@ String.prototype.legalName = function () {
 const adjs = ["Fruity", "Blue", "Red", "Green", "Yellow", "Big", "Small", "Ginourmous", "Hungry", "Mini", "Round", "Squared", "Squishy"];
 const nouns = ["Ball", "Car", "Phone", "Apple", "Phone", "Leaf", "Cat", "Frog", "Poet", "Actor", "Tea", "World", "Pear", "House", "Dot"];
 
-var clients = [];
+let clients = [];
 
 const sameUsername = (username) => {
     let same = false;
@@ -260,7 +260,6 @@ const run = async () => {
                 break;
 
             default:
-                ws.send(`${command.slashcommand} command doesn't exist. Use /help to see available commands.`)
                 break;
         }
     };
