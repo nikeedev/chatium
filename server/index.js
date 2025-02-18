@@ -246,3 +246,10 @@ const sendAll = (message) => {
 server.listen(port);
 console.log(`Server started on port ws://127.0.0.1:${port}`);
 console.log(`Client started on port http://127.0.0.1:${port}`);
+
+
+process.on('SIGINT', () => {
+    console.log("\shutting down from SIGINT (Ctrl-C)");
+    // some other closing procedures go here
+    process.exit(0);
+});
