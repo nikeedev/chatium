@@ -9,7 +9,16 @@ const app = express();
 const server = http.createServer(app);
 const port = 8080;
 
-const extermin_token = process.env.extermin_token;
+const authorized_bots = [
+    {
+        name: "Extermin",
+        token: process.env.extermin_token
+    },
+    {
+        name: "Scherzo",
+        token: process.env.scherzo_token
+    }
+];
 
 app.use('/', express.static('../client'));
 
@@ -48,7 +57,11 @@ wss.on('connection', (ws) => {
 
             switch (message.type) {
                 case "join":
-                    if (message.data.token == extermin_token) {
+                    let extermin_token = authorized_bots.find(bot => bot.name == "Extermin").token == message.data.token;
+                    let scherzo_token = authorized_bots.find(bot => bot.name == "Scherzo").token == message.data.token;
+
+                    // for mod bot:
+                    if (extermin_token) {
                         ws.username = message.data.name;
                         ws.access = message.data.access;
                         console.log(`bot ${ws.username} joined`);
@@ -73,6 +86,32 @@ wss.on('connection', (ws) => {
 
                         clients.push(ws);
                     }
+                    else if (scherzo_token) {
+                        ws.username = message.data.name;
+                        ws.access = message.data.access;
+                        console.log(`bot ${ws.username} joined`);
+
+                        ws.send(JSON.stringify({
+                            type: "info",
+                            data: `bot successfully connected to server. Server version: v${version}`,
+                            time: new Date().toLocaleTimeString()
+                        }));
+
+                        ws.send(JSON.stringify({
+                            type: "list",
+                            data: clients.map(client => client.username),
+                            time: new Date().toLocaleTimeString()
+                        }));
+
+                        sendAll(JSON.stringify({
+                            type: "bot.join",
+                            data: `${ws.username}`,
+                            time: new Date().toLocaleTimeString()
+                        }));
+
+                        clients.push(ws);
+                    }
+
                     break;
 
                 case "action":
@@ -110,6 +149,11 @@ wss.on('connection', (ws) => {
                                         }));
                                     }
                                 });
+                                sendAll(JSON.stringify({
+                                    type: "info",
+                                    data: `${action.username} has been kicked from the chat by @${message.username}`,
+                                    time: new Date().toLocaleTimeString()
+                                }));
                                 break;
                         }
                     }

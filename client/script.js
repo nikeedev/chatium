@@ -4,9 +4,13 @@ const input = document.getElementById("input");
 /** @type {HTMLDivElement} */
 const output = document.getElementById("output");
 
-output.style.width = `${window.innerWidth - 40}px`;
+output.style.width = `${window.innerWidth - 60}px`;
 output.style.height = `${window.innerHeight - 60}px`;
-input.style.width = `${window.innerWidth - 60}px`;
+input.style.width = `${window.innerWidth - 100}px`;
+
+document.querySelector('#emoji').addEventListener('click', () => {
+    document.querySelector('emoji-picker').style.display = "block";
+});
 
 Element.prototype.message = function (message, nl = true) {
     let p = document.createElement("p");
@@ -387,6 +391,15 @@ const run = async () => {
             }));
             clients.push(username);
         }
+
+        document.querySelector('emoji-picker')
+            .addEventListener('emoji-click', event => {
+                input.value += event.detail.unicode;
+            });
+
+        document.querySelector('emoji-picker').addEventListener("focusout", () => {
+            document.querySelector('emoji-picker').style.display = "none";
+        });
 
         window.addEventListener("keydown", function (e) {
             if (e.key == "Enter" && input.value != "") {

@@ -23,6 +23,10 @@
     margin-top: 2px;
 }
 
-#send {
+#send, #emoji {
     margin-left: -5px;
+}
+
+emoji-picker {
+    display: none;
 }

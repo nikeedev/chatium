@@ -1,17 +1,14 @@
 const { WebSocket } = require('ws');
-
-const fs = require("fs");
-
-const badWords = fs.readFileSync("badWords.txt").toString('UTF8').split('\n');
+require('dotenv').configDotenv();
 
 // Enter chatium server address here (e.g. 'ws://localhost:8080' , port 8080 is default server port for a chatium server) 
 const wss = new WebSocket('ws://localhost:8080');
 
-// Extermin bot info
-const extermin = {
-    token: "Y2lLMHk2M3V2dkxPMzhWQ3dPeWVrOHV6djRyQnBTcmhBV2FxQURoUTI=",
-    name: "Extermin",
-    access: ["mod"]
+// scherzo bot info
+const scherzo = {
+    token: process.env.token,
+    name: "Scherzo",
+    access: []
 };
 
 let once = false;
@@ -19,7 +16,7 @@ var clients = [];
 
 const run = async () => {
     wss.onmessage = (ws) => {
-        console.log("ws data: "+ws.data);
+        console.log("ws data: " + ws.data);
         // console.log(clients);
 
         /** @type {Message} */
@@ -41,39 +38,15 @@ const run = async () => {
                 break;
 
             case "message":
-                // console.log(clients.map(client => client.name))
-                // console.log(clients[clients.map(client => client.name).indexOf(message.username)]);
-                /** @type {String} */
-                badWords.forEach(word => {
-                    if (message.data.includes(word)) {
-                        if (clients[clients.map(client => client.name).indexOf(message.username)].warnings <= 2) { 
-                            wss.send(JSON.stringify({
-                                username: extermin.name,
-                                type: "bot.action",
-                                data: {
-                                    type: "warning",
-                                    username: message.username,
-                                    reason: "Excessive use of bad language in chat, you have " + (3 - clients[clients.map(client => client.name).indexOf(message.username)].warnings) + " warnings left before you get kicked"
-                                },
-                                time: new Date().toLocaleTimeString()
-                            }));
-                            clients[clients.map(client => client.name).indexOf(message.username)].warnings++;
-                        } else {
-                            wss.send(JSON.stringify({
-                                username: extermin.name,
-                                type: "bot.action",
-                                data: {
-                                    type: "kick",
-                                    username: message.username,
-                                    reason: "Excessive use of bad language in chat"
-                                },
-                                time: new Date().toLocaleTimeString()
-                            }));
-                        }
-                    }
-
-                });
-
+                console.log(`${message.time}\t${message.username}: ${message.data}`);
+                if (message.data.startsWith(".")) {
+                    message.data = message.data.slice(1);
+                    let command = message.data.split(" ")[0];
+                    let args = message.data.split(" ").slice(1);
+                    console.log(command);
+                    console.log(args);
+                }
+                
                 break;
 
             case "leave":
@@ -105,9 +78,9 @@ const run = async () => {
                 {
                     type: "bot.join",
                     data: {
-                        name: extermin.name,
-                        token: extermin.token,
-                        access: extermin.access
+                        name: scherzo.name,
+                        token: scherzo.token,
+                        access: scherzo.access
                     },
                 }
             ));

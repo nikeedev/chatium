@@ -1,0 +1,16 @@
+{
+  "name": "extermin-bot",
+  "version": "1.0.0",
+  "description": "",
+  "license": "GPL-3.0",
+  "author": "nikeedev",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "ws": "^8.18.0"
+  }
+}
