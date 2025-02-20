@@ -50,7 +50,7 @@ wss.on('connection', (ws) => {
 
         /** @type {Message} */
         let message = JSON.parse(msg.toString());
-        console.log(message);
+        // console.log(message);
 
         if (message.type.startsWith("bot.")) {
             message.type = message.type.replace("bot.", "");

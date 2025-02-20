@@ -1,5 +1,7 @@
 const { WebSocket } = require('ws');
 require('dotenv').configDotenv();
+const axios = require('axios');
+const { openWeatherWMOToEmoji } = require("@akaguny/open-meteo-wmo-to-emoji");
 
 // Enter chatium server address here (e.g. 'ws://localhost:8080' , port 8080 is default server port for a chatium server) 
 const wss = new WebSocket('ws://localhost:8080');
@@ -14,9 +16,10 @@ const scherzo = {
 let once = false;
 var clients = [];
 
+
 const run = async () => {
     wss.onmessage = (ws) => {
-        console.log("ws data: " + ws.data);
+        // console.log("ws data: " + ws.data);
         // console.log(clients);
 
         /** @type {Message} */
@@ -25,7 +28,7 @@ const run = async () => {
 
         switch (message.type) {
             case "join":
-                clients.push({ name: message.data, warnings: 0 });
+                clients.push({ name: message.data, xp: 0, level: 0 });
                 console.log(`${message.time}\t@${message.data} joined the server! Welcome @${message.data}!`, false);
 
                 break;
@@ -38,15 +41,54 @@ const run = async () => {
                 break;
 
             case "message":
-                console.log(`${message.time}\t${message.username}: ${message.data}`);
-                if (message.data.startsWith(".")) {
-                    message.data = message.data.slice(1);
+                // console.log(`${message.time}\t${message.username}: ${message.data}`);
+                if (message.data.startsWith("..")) {
+                    message.data = message.data.slice(2);
                     let command = message.data.split(" ")[0];
                     let args = message.data.split(" ").slice(1);
-                    console.log(command);
-                    console.log(args);
+                    
+                    switch (command) {
+                        case "cmds":
+                            wss.send(JSON.stringify({
+                                type: "message",
+                                data: `@${message.username}: Available commands: ..cmds, ..weather <city>, ..level`
+                            }));
+                            break;
+                        
+                        case "weather":
+                            let city = args.join(" ");
+                            axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&language=en&format=json`).then((response) => {
+                                let lat = response.data.results[0].latitude, lon = response.data.results[0].longitude;
+
+                                axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&wind_speed_unit=ms`).then((response) => {
+                                    let temp = response.data.current.temperature_2m;
+                                    let wind_speed = response.data.current.wind_speed_10m;
+                                    let emoji = openWeatherWMOToEmoji(response.data.current.wmo_code).value;
+
+
+                                    wss.send(JSON.stringify({
+                                        type: "message",
+                                        username: scherzo.name,
+                                        data: `@${message.username}: Weather in ${city}: ${emoji} ${temp}°C (wind speed ${wind_speed}m/s)`
+                                    }));
+                                });
+                            });
+                            break;
+                    }
+                } else {
+                    console.log(clients[clients.map(client => client.name).indexOf(message.username)]);
+                    clients[clients.map(client => client.name).indexOf(message.username)].xp += message.data.length;
+                    if (clients[clients.map(client => client.name).indexOf(message.username)].xp >= 100) {
+                        clients[clients.map(client => client.name).indexOf(message.username)].xp -= 100;
+                        clients[clients.map(client => client.name).indexOf(message.username)].level += 1;
+                        wss.send(JSON.stringify({
+                            type: "message",
+                            username: scherzo.name,
+                            data: `@${message.username} has leveled up! They are now level ${clients[clients.map(client => client.name).indexOf(message.username)].level}!`,
+                        }));
+                    }
                 }
-                
+
                 break;
 
             case "leave":
@@ -59,7 +101,7 @@ const run = async () => {
                 // console.log(message.data);
                 message.data.forEach(client => {
                     if (!clients.includes(client)) {
-                        clients.push({name:client, warnings: 0});
+                        clients.push({name: client, xp: 0, level: 0});
                     }
                 });
                 console.log(clients);

@@ -10,6 +10,8 @@
     "start": "nodemon index.js"
   },
   "dependencies": {
+    "@akaguny/open-meteo-wmo-to-emoji": "^0.1.0",
+    "axios": "^1.7.9",
     "dotenv": "^16.4.7",
     "ws": "^8.18.0"
   }
