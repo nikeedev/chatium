@@ -44,6 +44,10 @@ Element.prototype.warning = function (message, nl = true) {
     if (nl) this.insertBefore(document.createElement("br"), this.firstChild);
 }
 
+Element.prototype.clear = function () {
+    this.innerHTML = "";
+}
+
 /// https://github.com/krismuniz/slash-command
 const slashCommand = (s) => {
     let cmds = s.split(' ')[0].match(/\/([\w-=:.@]+)/ig);
@@ -137,6 +141,8 @@ function manageMessage(message, wss) {
                     /dm [username] [message] - sends a direct message to the specified username
 
                     /list - show list of online users
+
+                    /clear - clears the chat window
                     
                     --------------
 
@@ -201,6 +207,11 @@ function manageMessage(message, wss) {
                 }
                 break;
 
+            case "clear":
+                output.clear();
+                output.info("Chat window cleared.");
+                break;
+
             default:
                 output.error(`${command.slashcommand} command you provided doesn't exist. Use /help command to list available commands.`);
                 break;
@@ -244,75 +255,15 @@ const run = async () => {
 
             switch (message.type) {
                 case "join":
-                    if (message.data.token == extermin_token) {
-                        ws.username = message.data.name;
-                        ws.access = message.data.access;
-                        console.log(`bot ${ws.username} joined`);
-
-                        ws.send(JSON.stringify({
-                            type: "info",
-                            data: `bot successfully connected to server. Server version: v${version}`,
-                            time: new Date().toLocaleTimeString()
-                        }));
-
-                        ws.send(JSON.stringify({
-                            type: "list",
-                            data: clients.map(client => client.username),
-                            time: new Date().toLocaleTimeString()
-                        }));
-
-                        sendAll(JSON.stringify({
-                            type: "bot.join",
-                            data: `${ws.username}`,
-                            time: new Date().toLocaleTimeString()
-                        }));
-
-                        clients.push(ws);
-                    }
+                    clients.push(message.data);
                     break;
 
-                case "action":
-                    if (ws.access == "mod") {
-                        let action = message.data;
-                        switch (action.type) {
-                            case "warning":
-                                clients.forEach(client => {
-                                    if (client.username == action.username) {
-                                        client.send(JSON.stringify({
-                                            type: "action",
-                                            data: {
-                                                type: "warning",
-                                                reason: action.reason,
-                                                by: ws.username
-                                            },
-                                            time: new Date().toLocaleTimeString()
-                                        }));
-                                    }
-                                });
-                                break;
-                        
-                            
-                            case "kick":
-                                clients.forEach(client => {
-                                    if (client.username == action.username) {
-                                        client.send(JSON.stringify({
-                                            type: "action",
-                                            data: {
-                                                type: "kick",
-                                                reason: action.reason,
-                                                by: ws.username
-                                            },
-                                            time: new Date().toLocaleTimeString()
-                                        }));
-                                    }
-                                });
-                                break;
-                        }
-                    }
+                case "leave":
+                    clients.splice(clients.indexOf(message.username), 1);
+                    console.log("clients: ", clients);
                     break;
 
                 default:
-                    ws.send(`${command.slashcommand} command doesn't exist. Use /help to see available commands.`)
                     break;
             }
 

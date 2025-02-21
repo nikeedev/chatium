@@ -30,13 +30,26 @@ let clients = [];
 wss.on('connection', (ws) => {
 
     ws.on('close', () => {
-        console.log(`${ws.username} left the chat`);
-        clients.splice(clients.indexOf(ws), 1);
-        sendAll(JSON.stringify({
-            type: "leave",
-            username: ws.username,
-            time: new Date().toLocaleTimeString()
-        }));
+        if (authorized_bots.map(bot => bot.name).includes(ws.username)) {
+            sendAll(JSON.stringify({
+                type: "bot.leave",
+                username: ws.username,
+                time: new Date().toLocaleTimeString()
+            }));
+            console.log(JSON.stringify({
+                type: "bot.leave",
+                username: ws.username,
+                time: new Date().toLocaleTimeString()
+            }));
+        } else {
+            console.log(`${ws.username} left the chat`);
+            clients.splice(clients.indexOf(ws), 1);
+            sendAll(JSON.stringify({
+                type: "leave",
+                username: ws.username,
+                time: new Date().toLocaleTimeString()
+            }));
+        }
     });
 
     ws.on('message', (msg) => {
@@ -133,8 +146,8 @@ wss.on('connection', (ws) => {
                                     }
                                 });
                                 break;
-                        
-                            
+
+
                             case "kick":
                                 clients.forEach(client => {
                                     if (client.username == action.username) {
@@ -242,20 +255,34 @@ wss.on('connection', (ws) => {
                     let client = clients.find(client => client.username == message.username);
 
                     if (client !== undefined) {
-                        sendAll(JSON.stringify({
-                            type: "leave",
-                            username: client.username,
-                            time: new Date().toLocaleTimeString()
-                        }));
-                        console.log(JSON.stringify({
-                            type: "leave",
-                            username: client.username,
-                            time: new Date().toLocaleTimeString()
-                        }))
+                        console.log("leaving client", client.username == authorized_bots.map(bot => bot.name).includes(message.username))
+                        if (client.username == authorized_bots.map(bot => bot.name).includes(message.username)) {
+                            sendAll(JSON.stringify({
+                                type: "bot.leave",
+                                username: client.username,
+                                time: new Date().toLocaleTimeString()
+                            }));
+                            console.log(JSON.stringify({
+                                type: "bot.leave",
+                                username: client.username,
+                                time: new Date().toLocaleTimeString()
+                            }));
+                        } else {
+                            sendAll(JSON.stringify({
+                                type: "leave",
+                                username: client.username,
+                                time: new Date().toLocaleTimeString()
+                            }));
+                            console.log(JSON.stringify({
+                                type: "leave",
+                                username: client.username,
+                                time: new Date().toLocaleTimeString()
+                            }))
 
-                        console.log(`${client.username} left the chat`);
-                        clients.splice(clients.indexOf(client), 1);
-                        client.close();
+                            console.log(`${client.username} left the chat`);
+                            clients.splice(clients.indexOf(client), 1);
+                            client.close();
+                        }
                     } else {
                         ws.send(JSON.stringify({
                             type: "info",
@@ -294,6 +321,14 @@ console.log(`Client started on port http://127.0.0.1:${port}`);
 
 process.on('SIGINT', () => {
     console.log("\shutting down from SIGINT (Ctrl-C)");
-    // some other closing procedures go here
+    wss.close();
+    server.close();
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    ;
+    wss.close();
+    server.close();
     process.exit(0);
 });

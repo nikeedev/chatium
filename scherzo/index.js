@@ -29,14 +29,23 @@ const run = async () => {
         switch (message.type) {
             case "join":
                 clients.push({ name: message.data, xp: 0, level: 0 });
-                console.log(`${message.time}\t@${message.data} joined the server! Welcome @${message.data}!`, false);
+                console.log(`${message.time}\t@${message.data} joined the server! Welcome @${message.data}!`);
+                break;
 
+            case "list":
+                // console.log(message.data);
+                message.data.forEach(client => {
+                    if (!clients.includes(client)) {
+                        clients.push({ name: client, xp: 0, level: 0 });
+                    }
+                });
+                console.log(clients);
                 break;
 
             case "rename":
                 clients[clients.map(client => client.name).indexOf(message.username)].name = message.data;
                 console.log(clients.indexOf(message.username));
-                console.info(`${message.time}\t@${message.username} changed their username to ${message.data}.`, false);
+                console.info(`${message.time}\t@${message.username} changed their username to ${message.data}.`);
 
                 break;
 
@@ -46,15 +55,17 @@ const run = async () => {
                     message.data = message.data.slice(2);
                     let command = message.data.split(" ")[0];
                     let args = message.data.split(" ").slice(1);
-                    
+
                     switch (command) {
                         case "cmds":
                             wss.send(JSON.stringify({
                                 type: "message",
-                                data: `@${message.username}: Available commands: ..cmds, ..weather <city>, ..level`
+                                data: `@${message.username}: Available commands: \n\t..cmds, \n\t..weather <city>, \n\t..level/..xp`,
+                                username: scherzo.name,
+                                time: new Date().toLocaleTimeString()
                             }));
                             break;
-                        
+
                         case "weather":
                             let city = args.join(" ");
                             axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&language=en&format=json`).then((response) => {
@@ -63,29 +74,49 @@ const run = async () => {
                                 axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&wind_speed_unit=ms`).then((response) => {
                                     let temp = response.data.current.temperature_2m;
                                     let wind_speed = response.data.current.wind_speed_10m;
-                                    let emoji = openWeatherWMOToEmoji(response.data.current.wmo_code).value;
+                                    let emoji = openWeatherWMOToEmoji(response.data.current.weather_code).value;
 
 
                                     wss.send(JSON.stringify({
                                         type: "message",
                                         username: scherzo.name,
-                                        data: `@${message.username}: Weather in ${city}: ${emoji} ${temp}°C (wind speed ${wind_speed}m/s)`
+                                        data: `@${message.username}: Weather in ${city}: ${emoji} ${temp}°C (wind speed ${wind_speed}m/s)`,
+                                        time: new Date().toLocaleTimeString()
                                     }));
                                 });
                             });
                             break;
+
+                        case "level":
+                        case "xp":
+                            let xp = clients[clients.map(client => client.name).indexOf(message.username)].xp;
+                            let level = clients[clients.map(client => client.name).indexOf(message.username)].level;
+                            wss.send(JSON.stringify({
+                                type: "message",
+                                username: scherzo.name,
+                                data: `@${message.username}: You have ${xp} xp and you are level ${level}.`,
+                                time: new Date().toLocaleTimeString()
+                            }));
+
+                            break;
                     }
                 } else {
-                    console.log(clients[clients.map(client => client.name).indexOf(message.username)]);
-                    clients[clients.map(client => client.name).indexOf(message.username)].xp += message.data.length;
-                    if (clients[clients.map(client => client.name).indexOf(message.username)].xp >= 100) {
-                        clients[clients.map(client => client.name).indexOf(message.username)].xp -= 100;
-                        clients[clients.map(client => client.name).indexOf(message.username)].level += 1;
-                        wss.send(JSON.stringify({
-                            type: "message",
-                            username: scherzo.name,
-                            data: `@${message.username} has leveled up! They are now level ${clients[clients.map(client => client.name).indexOf(message.username)].level}!`,
-                        }));
+                    let index = clients.findIndex(client => client.name === message.username);
+                    if (index !== -1) {
+                        console.log(clients[clients.map(client => client.name).indexOf(message.username)]);
+                        clients[clients.map(client => client.name).indexOf(message.username)].xp += message.data.length;
+                        if (clients[clients.map(client => client.name).indexOf(message.username)].xp >= 100) {
+                            clients[clients.map(client => client.name).indexOf(message.username)].xp -= 100;
+                            clients[clients.map(client => client.name).indexOf(message.username)].level += 1;
+                            wss.send(JSON.stringify({
+                                type: "message",
+                                username: scherzo.name,
+                                data: `@${message.username} has leveled up! They are now level ${clients[clients.map(client => client.name).indexOf(message.username)].level}!`,
+                                time: new Date().toLocaleTimeString()
+                            }));
+                        }
+                    } else {
+                        console.error(`User ${message.username} not found in clients list.`);
                     }
                 }
 
@@ -95,16 +126,6 @@ const run = async () => {
                 console.info(`${message.time}\t${message.username} left the chat`);
                 // console.log(`${ws.username} left the chat`);
                 clients.splice(clients.indexOf(message.username), 1);
-                break;
-
-            case "list":
-                // console.log(message.data);
-                message.data.forEach(client => {
-                    if (!clients.includes(client)) {
-                        clients.push({name: client, xp: 0, level: 0});
-                    }
-                });
-                console.log(clients);
                 break;
 
             case "info":
