@@ -78,7 +78,7 @@ const slashCommand = (s) => {
 */
 
 String.prototype.legalName = function () {
-    return !/\s/g.test(this.valueOf()) && !/\//g.test(this.valueOf());
+    return !/\s/g.test(this.valueOf()) && !/\//g.test(this.valueOf()) && this.valueOf().length > 28;
 }
 
 const adjs = ["Fruity", "Blue", "Red", "Green", "Yellow", "Big", "Small", "Ginourmous", "Hungry", "Mini", "Round", "Squared", "Squishy"];
@@ -158,7 +158,7 @@ function manageMessage(message, wss) {
                 console.log(new_username);
 
                 if (!new_username.legalName()) {
-                    output.error(`Username cannot include spaces or "/" slash symbol due to parsing reasons.`);
+                    output.error(`Usernames cannot include spaces, "/" slash symbol due to parsing reasons. For protective measures, max length of a name is 28 letters.`);
                 }
                 else if (sameUsername(new_username)) {
                     output.error(`Username is already in use. Please write another.`);
