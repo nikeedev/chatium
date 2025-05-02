@@ -46,6 +46,7 @@ const run = async () => {
                 /** @type {String} */
                 badWords.forEach(word => {
                     if (message.data.includes(word)) {
+                        console.log("The word that got deleted:", word);
                         if (clients[clients.map(client => client.name).indexOf(message.username)].warnings <= 2) { 
                             wss.send(JSON.stringify({
                                 username: extermin.name,
