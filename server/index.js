@@ -207,7 +207,7 @@ wss.on('connection', (ws) => {
                 case "rename":
                     let username = message.data;
 
-                    console.log(username);
+                    //console.log(username);
 
                     let old = ws.username;
                     ws.username = username;
@@ -223,7 +223,7 @@ wss.on('connection', (ws) => {
                     break;
 
                 case "message":
-                    console.log(message);
+                    // console.log(message);
                     if (!message.hasOwnProperty("to")) {
                         sendAll(JSON.stringify({
                             type: "message",
@@ -255,29 +255,29 @@ wss.on('connection', (ws) => {
                     let client = clients.find(client => client.username == message.username);
 
                     if (client !== undefined) {
-                        console.log("leaving client", client.username == authorized_bots.map(bot => bot.name).includes(message.username))
+                        /*console.log("leaving client", client.username == authorized_bots.map(bot => bot.name).includes(message.username))*/
                         if (client.username == authorized_bots.map(bot => bot.name).includes(message.username)) {
                             sendAll(JSON.stringify({
                                 type: "bot.leave",
                                 username: client.username,
                                 time: new Date().toLocaleTimeString()
                             }));
-                            console.log(JSON.stringify({
+                            /*console.log(JSON.stringify({
                                 type: "bot.leave",
                                 username: client.username,
                                 time: new Date().toLocaleTimeString()
-                            }));
+                            }));*/
                         } else {
                             sendAll(JSON.stringify({
                                 type: "leave",
                                 username: client.username,
                                 time: new Date().toLocaleTimeString()
                             }));
-                            console.log(JSON.stringify({
+                            /*console.log(JSON.stringify({
                                 type: "leave",
                                 username: client.username,
                                 time: new Date().toLocaleTimeString()
-                            }))
+                            }))*/
 
                             console.log(`${client.username} left the chat`);
                             clients.splice(clients.indexOf(client), 1);
