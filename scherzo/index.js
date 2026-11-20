@@ -103,15 +103,15 @@ const run = async () => {
                 } else {
                     let index = clients.findIndex(client => client.name === message.username);
                     if (index !== -1) {
-                        console.log(clients[clients.map(client => client.name).indexOf(message.username)]);
+                        // console.log(clients[clients.map(client => client.name).indexOf(message.username)]);
                         clients[clients.map(client => client.name).indexOf(message.username)].xp += message.data.length;
-                        if (clients[clients.map(client => client.name).indexOf(message.username)].xp >= 100) {
+                        if (clients[clients.map(client => client.name).indexOf(message.username)].xp > 99) {
                             clients[clients.map(client => client.name).indexOf(message.username)].xp -= 100;
                             clients[clients.map(client => client.name).indexOf(message.username)].level += 1;
                             wss.send(JSON.stringify({
                                 type: "message",
                                 username: scherzo.name,
-                                data: `@${message.username} has leveled up! They are now level ${clients[clients.map(client => client.name).indexOf(message.username)].level}!`,
+                                data: `@${message.username} has leveled up! They are now at level ${clients[clients.map(client => client.name).indexOf(message.username)].level}!`,
                                 time: new Date().toLocaleTimeString()
                             }));
                         }
